@@ -17,7 +17,7 @@ A [Conda](https://conda.io/miniconda.html) `environment.yml` is supplied with al
 ~~~~
 $> conda env create -f environment.yml
 $> source activate reinvent-dnc
-(reinvent-gdb13) $> ./create_model.py -h
+(reinvent-dnc) $> ./create_model.py -h
 usage: create_model.py [-h] --input-smiles-path INPUT_SMILES_PATH
                        [--output-model-path OUTPUT_MODEL_PATH]
                        [--num-layers NUM_LAYERS]
@@ -61,6 +61,6 @@ Usage examples
 
 Create, train and sample a model.
 ~~~~
-[commands for creating, trainign and samplind
+[commands for creating, training and sampling]
 ~~~~
 
