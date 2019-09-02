@@ -26,7 +26,7 @@ class DNC(ANetwork):
                  clip=10,
                  **kwargs):
         super(DNC, self).__init__()
-        # todo: separate weights and RNNs for the interface and output vectors
+
 
         self.device = device
         self.input_size = input_size  # vocabulary size
@@ -37,7 +37,7 @@ class DNC(ANetwork):
         self._bias = bias
         self._batch_first = batch_first
         self._dropout = dropout
-        self._num_controller_layers = num_controller_layers  # number of layers in the controller
+        self._num_controller_layers = num_controller_layers
         self._memory_cells = memory_cells
         self._read_heads = read_heads
         self._cell_size = cell_size

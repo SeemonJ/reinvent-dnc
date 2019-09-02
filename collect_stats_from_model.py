@@ -24,8 +24,8 @@ import utils.tensorboard as utb
 class CollectStatsFromModelRunner:
     """Samples an existing RNN model."""
 
-    def __init__(self, model_path, log_path, validation_set_path, training_set_path, epoch, sample_size=100000,
-                 summary_writer=None, with_weights=False, smiles_type="smiles", batch_size=128):
+    def __init__(self, model_path, log_path, validation_set_path, training_set_path, epoch, sample_size=10000, summary_writer=None,
+                 with_weights=False, smiles_type="smiles"):
         """
         Creates a CollectStatsFromModelRunner.
         :param model_path: The input model path.
@@ -39,7 +39,6 @@ class CollectStatsFromModelRunner:
         self._model = mm.Model.load_from_file(model_path, sampling_mode=True)
         self._epoch = epoch
         self._sample_size = max(sample_size, 1)
-        self._batch_size = batch_size
 
         # optionally reuse summary writer to prevent device errors
         if summary_writer:
@@ -92,19 +91,16 @@ class CollectStatsFromModelRunner:
 
     def _calculate_validation_training_nlls(self):
         def calc_nlls(path):
-            return np.concatenate(list(
-                md.calculate_nlls_from_model(self._model, uc.read_smi_file(path, num=self._sample_size),
-                                             self._batch_size)[0]))
+            return np.concatenate(list(md.calculate_nlls_from_model(self._model, uc.read_smi_file(path, num=self._sample_size))[0]))
 
         return (calc_nlls(self._validation_set_path), calc_nlls(self._training_set_path))
 
     def _valid_stats(self, mols):
-        self.summary_writer.add_scalar("valid", 100.0 * len(mols) / self._sample_size, self._epoch)
+        self.summary_writer.add_scalar("valid", 100.0*len(mols)/self._sample_size, self._epoch)
 
     def _weight_stats(self):
         for name, weights in self._model.network.named_parameters():
-            self.summary_writer.add_histogram("weights/{}".format(name), weights.clone().cpu().data.numpy(),
-                                              self._epoch)
+            self.summary_writer.add_histogram("weights/{}".format(name), weights.clone().cpu().data.numpy(), self._epoch)
 
     def _nll_stats(self, sampled_nlls, validation_nlls, training_nlls):
 
@@ -140,16 +136,18 @@ class CollectStatsFromModelRunner:
         self.summary_writer.add_scalar("nll_plot/jsd_joined", self.data["jsd_joined"], self._epoch)
 
     def _draw_mols(self, mols):
-        smis, mols = zip(*random.sample(mols, 20))
-        utb.add_mols(self.summary_writer, "molecules", mols, mols_per_row=4, legends=smis, global_step=self._epoch)
+        try:
+            smis, mols = zip(*random.sample(mols, 20))
+            utb.add_mols(self.summary_writer, "molecules", mols, mols_per_row=4, legends=smis, global_step=self._epoch)
+        except ValueError:
+            pass
 
 
 def parse_args():
     """Parses input arguments."""
     parser = argparse.ArgumentParser(description="Collects stats from a model.")
     parser.add_argument("--model-path", "-m", help="Path to the model.", type=str, required=True)
-    parser.add_argument("--training-set-path", "-t", help="Path to the training set SMILES file.", type=str,
-                        required=True)
+    parser.add_argument("--training-set-path", "-t", help="Path to the training set SMILES file.", type=str, required=True)
     parser.add_argument("--epoch", "-e", help="Epoch number", type=int, required=True)
     parser = add_stats_args(parser)
 
@@ -159,15 +157,13 @@ def parse_args():
 def add_stats_args(parser, prefix="", short_prefix="", has_required=True):  # pylint: disable=missing-docstring
 
     def _add_arg(name, short_name, help_msg, **kwargs):
-        parser.add_argument("--{}{}".format(prefix, name), "-{}{}".format(short_prefix, short_name), help=help_msg,
-                            required=has_required, **kwargs)
+        parser.add_argument("--{}{}".format(prefix, name), "-{}{}".format(short_prefix, short_name), help=help_msg, required=has_required, **kwargs)
 
     _add_arg("log-path", "l", "Path to the log output folder.", type=str)
     _add_arg("validation-set-path", "v", "Path to the validation set SMILES file.", type=str)
     _add_arg("sample-size", "n", "Number of SMILES to sample from the model. [DEFAULT: 100000]", type=int)
     _add_arg("with-weights", "w", "Store the weight matrices each epoch (DEFAULT: False).", action="store_true")
-    _add_arg("smiles-type", "st",
-             "SMILES type to converto to TYPES=(smiles, deepsmiles.[branches|rings|both]) (DEFAULT: smiles)", type=str)
+    _add_arg("smiles-type", "st", "SMILES type to converto to TYPES=(smiles, deepsmiles.[branches|rings|both]) (DEFAULT: smiles)", type=str)
 
     return parser
 

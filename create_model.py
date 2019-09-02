@@ -17,9 +17,9 @@ class CreateModelRunner:
     ALLOWED_MODEL_TYPE = ['dnc', 'rnn']
     """Creates a new model from a set of given parameters."""
 
-    def __init__(self, input_smiles_path, output_model_path='storage', num_layers=3, layer_size=512,
-                 embedding_layer_size=128, dropout=0., max_sequence_length=256, memory_cells=128, cell_size=20,
-                 read_heads=8, model_type='dnc', controller_type='gru', num_controller_layers=1):
+    def __init__(self, input_smiles_path, output_model_path='storage', num_layers=1, layer_size=512,
+                 embedding_layer_size=128, dropout=0., max_sequence_length=256, memory_cells=32, cell_size=20,
+                 read_heads=8, model_type='dnc', controller_type='lstm', num_controller_layers=3):
         """
         Creates a CreateModelRunner.
         :param input_smiles_path: The input smiles string.
@@ -75,8 +75,6 @@ class CreateModelRunner:
         model = mm.Model(vocabulary=vocabulary, tokenizer=tokenizer, network_params=network_params, model_type=self._model_type,
                          max_sequence_length=self._max_sequence_length)
 
-        # TODO: Hotfix. Do later
-        # splitting model name from extension
         model_folder = model.model_name.split('.')[0]
         storage_folder_path = os.path.join(self._output_model_path, model_folder)
         i = 0
@@ -106,17 +104,17 @@ def parse_args():
                             "SMILES to calculate the vocabulary from. The SMILES are taken as-is, no processing is done."),
                         type=str, required=True)
     parser.add_argument("--output-model-path", "-o", help="Prefix to the output model.", type=str)
-    parser.add_argument("--num-layers", "-g", help="Number of layers of the model [DEFAULT: 3]", type=int)
-    parser.add_argument("--num-controller-layers", "-cg", help="Number of layers in the DNC controller [DEFAULT: 1]", type=int)
+    parser.add_argument("--num-layers", "-g", help="Number of layers of the model [DEFAULT: 1]", type=int)
+    parser.add_argument("--num-controller-layers", "-cg", help="Number of layers in the DNC controller [DEFAULT: 3]", type=int)
     parser.add_argument("--layer-size", "-s", help="Size of each of the GRU layers [DEFAULT: 512]", type=int)
-    parser.add_argument("--embedding-layer-size", "-e", help="Size of the embedding layer [DEFAULT: 256]", type=int)
-    parser.add_argument("--dropout", "-d", help="Amount of dropout between the GRU layers [DEFAULT: 0.0]", type=float)
+    parser.add_argument("--embedding-layer-size", "-e", help="Size of the embedding layer [DEFAULT: 128]", type=int)
+    parser.add_argument("--dropout", "-d", help="Dropout constant [DEFAULT: 0.0]", type=float)
     parser.add_argument("--max-string-size", help="Maximum size of the strings [DEFAULT: 256]", type=int)
-    parser.add_argument("--memory-cells", help="Amount of memory cells in DNC [DEFAULT: 128]", type=int)
+    parser.add_argument("--memory-cells", help="Amount of memory cells in DNC [DEFAULT: 32]", type=int)
     parser.add_argument("--cell-size", help="The size of the cell in DNC [DEFAULT: 20]", type=int)
     parser.add_argument("--read-heads", help="Amount of read heads in DNC [DEFAULT: 8]", type=int)
-    parser.add_argument("--model-type", help="The model to use for training [DEFAULT: rnn]", type=str)
-    parser.add_argument("--controller-type", help="The cell types in the controller [DEFAULT: gru]", type=str)
+    parser.add_argument("--model-type", help="The model to use for training [DEFAULT: dnc]", type=str)
+    parser.add_argument("--controller-type", help="The cell types in the controller [DEFAULT: lstm]", type=str)
 
     return {k: v for k, v in vars(parser.parse_args()).items() if v is not None}
 
