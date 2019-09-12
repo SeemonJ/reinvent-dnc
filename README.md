@@ -1,5 +1,5 @@
 # Implementation of the DNC model for molecule generation.
-Implementation of the Differentiable Neural Computer used by Simon Johansson and Oleksii Prydhodko in [To be Published].
+Implementation of the Differentiable Neural Computer used by Simon Johansson and Oleksii Prydhodko in [this paper on ChemRxiv](https://chemrxiv.org/articles/Comparison_Between_SMILES-Based_Differential_Neural_Computer_and_Recurrent_Neural_Network_Architectures_for_De_Novo_Molecule_Design/9758600).
 
 ================================================================================
 
